@@ -1,0 +1,421 @@
+{
+  "name": "inbound",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inventory-inbound",
+        "responseMode": "responseNode",
+        "options": {
+          "ignoreBots": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2608,
+        -1088
+      ],
+      "id": "c2763fa4-1f07-4055-a5ed-41746e6ee4e1",
+      "name": "Webhook",
+      "webhookId": "5a6dd782-4643-43c9-94f4-d96bb8c1920c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"Missing required fields\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2160,
+        -1280
+      ],
+      "id": "ac8c3240-9bbe-4630-b668-ad594ea93bd8",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"Quantity must be greater than zero\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1712,
+        -1184
+      ],
+      "id": "306bb6da-a479-48f2-8f7e-395343847b60",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a002c1eb-1519-498d-a904-3d6123885df3",
+              "leftValue": "={{ $('Webhook').item.json.body.quantity }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1936,
+        -1088
+      ],
+      "id": "8390eef2-bb8d-4a8a-803a-3a84f8edc79c",
+      "name": "check qunatity"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4afdeace-1c37-4398-bae4-467030f5b2ee",
+              "leftValue": "={{ $json.body.item_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "eed468b5-8daa-4727-8be8-6ac09562026e",
+              "leftValue": "={{ $json.body.category }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "53aba134-5053-4f70-8f6a-7cfc03a1970f",
+              "leftValue": "={{ $json.body.quantity }}",
+              "rightValue": {},
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1ae6ba54-29b3-408b-817f-e201810ed696",
+              "leftValue": "={{ $json.body.price }}",
+              "rightValue": {},
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e0a5583a-6509-4b09-b8b2-b132a46be8dd",
+              "leftValue": "={{ $json.body.supplier_email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2384,
+        -1088
+      ],
+      "id": "a624c2c7-53fd-416f-bab2-72e6d0fc24d7",
+      "name": "validate user inputes"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"error_details\": {\n    \"message\": \"{{ $json.error }}\",\n    \"timestamp\": \"{{ $now }}\"\n  }\n}\n",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1440,
+        -880
+      ],
+      "id": "dc3c7bf0-9c9d-4cd4-980b-16438b63515f",
+      "name": "returns database errors"
+    },
+    {
+      "parameters": {
+        "tableId": "inventory",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "item_name",
+              "fieldValue": "={{ $json.item_name }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $('Get a row').item.json.category }}"
+            },
+            {
+              "fieldId": "price",
+              "fieldValue": "={{ $('Get a row').item.json.price }}"
+            },
+            {
+              "fieldId": "supplier_email",
+              "fieldValue": "={{ $('Get a row').item.json.supplier_email }}"
+            },
+            {
+              "fieldId": "operation",
+              "fieldValue": "={{ $('Get a row').item.json.operation }}"
+            },
+            {
+              "fieldId": "stock_level",
+              "fieldValue": "={{ $('Webhook').item.json.body.quantity }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1712,
+        -992
+      ],
+      "id": "1dc5f9d7-19a6-492d-b61b-055cae037354",
+      "name": "create product",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N77k5bVKrXaIyBQZ",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "inventory",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "item_name",
+              "keyValue": "={{ $('Webhook').item.json.body.item_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2160,
+        -1088
+      ],
+      "id": "24da2b46-3842-4805-81f4-cf04ebd2c5e9",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N77k5bVKrXaIyBQZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "order_logs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "item_name",
+              "fieldValue": "={{ $('Webhook').item.json.body.item_name }}"
+            },
+            {
+              "fieldId": "category",
+              "fieldValue": "={{ $('Webhook').item.json.body.category }}"
+            },
+            {
+              "fieldId": "price",
+              "fieldValue": "={{ $('Webhook').item.json.body.price }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "={{ $('Webhook').item.json.body.operation }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        -1088
+      ],
+      "id": "9c93a3fe-52eb-4f3a-baa6-82cf871aa2a2",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N77k5bVKrXaIyBQZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Product created successfully\"\n}\n",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1488,
+        -1088
+      ],
+      "id": "766d5664-91b1-4a74-982e-58c345fa58d3",
+      "name": "success response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "validate user inputes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check qunatity": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "create product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate user inputes": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create product": {
+      "main": [
+        [
+          {
+            "node": "success response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "returns database errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "check qunatity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "returns database errors": {
+      "main": [
+        []
+      ]
+    },
+    "success response": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4f9012ac-b7fc-4d84-baec-438c2d72a38e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e72b5d6c2efe46c5386157fb454baed410e1b959296b203329d789ea3516f1f0"
+  },
+  "id": "b9V8rvSRkdwr7GZB",
+  "tags": []
+}

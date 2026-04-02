@@ -1,0 +1,430 @@
+{
+  "name": "outbound",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "PATCH",
+        "path": "inventory/outboound",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -544,
+        -160
+      ],
+      "id": "3c84343b-61d1-4903-99c1-8e4663e11ac8",
+      "name": "Webhook",
+      "webhookId": "b7fdb5c6-492b-4870-8f7c-4f10d36bb456"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4afdeace-1c37-4398-bae4-467030f5b2ee",
+              "leftValue": "={{ $json.body.item_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "eed468b5-8daa-4727-8be8-6ac09562026e",
+              "leftValue": "={{ $json.body.category }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "53aba134-5053-4f70-8f6a-7cfc03a1970f",
+              "leftValue": "={{ $json.body.quantity }}",
+              "rightValue": {},
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1ae6ba54-29b3-408b-817f-e201810ed696",
+              "leftValue": "={{ $json.body.price }}",
+              "rightValue": {},
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        -160
+      ],
+      "id": "3ba241f1-d182-41a6-9d23-157d51d1de4d",
+      "name": "validate user inputes"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "inventory",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "item_name",
+              "keyValue": "={{ $('Webhook').item.json.body.item_name }}"
+            },
+            {
+              "keyName": "category",
+              "keyValue": "={{ $('Webhook').item.json.body.category }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -112
+      ],
+      "id": "d9a9c598-fcac-489b-ab39-df77db5442fc",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N77k5bVKrXaIyBQZ",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"Invalid input provided\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -80,
+        -256
+      ],
+      "id": "79d18a4b-3355-437a-ac4f-b58eb3f43207",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"product not found\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        544,
+        -224
+      ],
+      "id": "13efe9be-b501-4fa4-b8ec-a540087880f0",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c7a717e9-feb0-4788-b8ff-fda702f1a0dc",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        -208
+      ],
+      "id": "08ddf6c2-614f-44a5-a388-53a6e3379dc3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fd498e18-f1d9-4cf3-bb73-05006fe673e5",
+              "leftValue": "={{ $('Get a row').item.json.stock_level }}",
+              "rightValue": "={{ $('Webhook').item.json.body.quantity }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "5293e961-d63f-4b3c-b3ab-a08132fe0439",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"not enough product in stock\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        688,
+        -112
+      ],
+      "id": "034a19d4-dbac-4257-af0c-f0e2554c8165",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "inventory",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "stock_level",
+              "fieldValue": "={{ $('Webhook').item.json.body.quantity - $('Webhook').item.json.body.quantity}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        656,
+        64
+      ],
+      "id": "ae5c479f-818d-4a76-ae77-6fbf347ae95f",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N77k5bVKrXaIyBQZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": \"{{ $('Get a row').item.json.item_name }}\",\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        864,
+        64
+      ],
+      "id": "d43ae9fb-9ca9-4a71-b714-4932a2beffc0",
+      "name": "Respond to Webhook3"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "kim5y.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.49.1",
+            "content-length": "126",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "102.91.92.129",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "NG",
+            "cf-ray": "9e601f54de20951b-LHR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "333d78c5-bdfb-4fe9-a2c5-27437afc1630",
+            "x-forwarded-for": "102.91.92.129, 172.70.162.227",
+            "x-forwarded-host": "kim5y.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-18-868c78b8f-5bhnt",
+            "x-is-trusted": "yes",
+            "x-real-ip": "102.91.92.129"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "item_name": "Laptop Model X",
+            "category": "Electronics",
+            "quantity": 1,
+            "price": 299.99,
+            "operation": "outbound"
+          },
+          "webhookUrl": "https://kim5y.app.n8n.cloud/webhook-test/inventory/outboound",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "validate user inputes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate user inputes": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b70f3c40-fc2a-4095-8654-b6a870d89a3a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e72b5d6c2efe46c5386157fb454baed410e1b959296b203329d789ea3516f1f0"
+  },
+  "id": "TprkfRnb9DolLbwm",
+  "tags": []
+}

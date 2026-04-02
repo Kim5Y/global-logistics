@@ -1,0 +1,181 @@
+{
+  "name": "inventory-health-check",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "inventory-health-check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "758cd7fc-33c7-4daf-bf78-b6279514e239",
+      "name": "Webhook",
+      "webhookId": "37470a53-fa07-448e-b7ce-1dd8acea92ef"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "inventory",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "stock_level",
+              "condition": "lte",
+              "keyValue": "10"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -144
+      ],
+      "id": "6e01e991-0cb8-47af-a0c3-e70a5037c527",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N77k5bVKrXaIyBQZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "enableStreaming": true
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        400,
+        -48
+      ],
+      "id": "bdf6a840-fdfa-4a14-8638-ebf3a72603eb",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"database is empty\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        -240
+      ],
+      "id": "217022f9-b698-471f-83bf-1e2f826a183f",
+      "name": "send error"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49fce75b-67ae-4982-ae02-a7a0ce097e6a",
+              "leftValue": "={{ $json}}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "6d455a66-5b06-4155-a908-68c372bd4ca2",
+              "leftValue": "={{ $json}}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        -144
+      ],
+      "id": "997737df-bc71-48a4-a272-9ff43e48262c",
+      "name": "check if products exists"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "check if products exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check if products exists": {
+      "main": [
+        [
+          {
+            "node": "send error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "70de6b2f-74c8-44f2-a250-7a128113ac7b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e72b5d6c2efe46c5386157fb454baed410e1b959296b203329d789ea3516f1f0"
+  },
+  "id": "6lj7wbUarXdUoKVu",
+  "tags": []
+}
